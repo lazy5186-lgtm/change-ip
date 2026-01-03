@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모바일 테더링 IP 변경기</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 850px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .header { text-align: center; margin-bottom: 25px; }
+    h1 { color: #fff; font-size: 1.6rem; margin-bottom: 5px; }
+    .subtitle { color: #888; font-size: 0.85rem; }
+    .main-content { display: flex; gap: 25px; }
+    .left-panel { flex: 1; min-width: 320px; }
+    .right-panel { flex: 1; min-width: 320px; }
+    .status-section {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .section-title {
+      color: #888;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-label { color: #888; font-size: 0.85rem; }
+    .status-value {
+      color: #fff;
+      font-weight: 600;
+      font-family: 'Consolas', monospace;
+      font-size: 0.9rem;
+    }
+    .status-value.connected { color: #4ade80; }
+    .status-value.disconnected { color: #f87171; }
+    .interface-select {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+      cursor: pointer;
+    }
+    .interface-select:focus { outline: none; border-color: #6366f1; }
+    .interface-select option { background: #1a1a2e; color: #fff; }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
+    }
+    .btn-primary:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+    .settings-section {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .settings-label { color: #ccc; font-size: 0.85rem; }
+    .settings-input {
+      width: 70px;
+      padding: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #fff;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .settings-input:focus { outline: none; border-color: #6366f1; }
+    .log-section {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 15px;
+      height: 100%;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+    }
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .log-title {
+      color: #888;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .log-clear {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .log-clear:hover { background: rgba(255, 255, 255, 0.1); color: #888; }
+    .log-content {
+      flex: 1;
+      font-family: 'Consolas', monospace;
+      font-size: 0.8rem;
+      color: #a0a0a0;
+      line-height: 1.7;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    .log-content::-webkit-scrollbar { width: 6px; }
+    .log-content::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
+    .log-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+    .log-content .success { color: #4ade80; }
+    .log-content .error { color: #f87171; }
+    .log-content .info { color: #60a5fa; }
+    .log-content .warning { color: #fbbf24; }
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ip-display {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .ip-display-label { color: #888; font-size: 0.75rem; margin-bottom: 5px; }
+    .ip-display-value {
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: 'Consolas', monospace;
+    }
+    @media (max-width: 750px) {
+      .main-content { flex-direction: column; }
+      .left-panel, .right-panel { min-width: auto; }
+      .log-section { min-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📱 모바일 테더링 IP 변경기</h1>
+      <p class="subtitle">갤럭시 / 아이폰 USB 테더링 지원</p>
+    </div>
+    <div class="main-content">
+      <div class="left-panel">
+        <div class="ip-display">
+          <div class="ip-display-label">현재 IP</div>
+          <div class="ip-display-value" id="currentIP">-</div>
+        </div>
+        <div class="status-section">
+          <div class="section-title">연결 상태</div>
+          <div class="status-row">
+            <span class="status-label">상태</span>
+            <span class="status-value" id="connectionStatus">확인 중...</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">인터페이스</span>
+            <span class="status-value" id="interfaceName">-</span>
+          </div>
+        </div>
+        <select class="interface-select" id="interfaceSelect">
+          <option value="">테더링 인터페이스 선택...</option>
+        </select>
+        <div class="settings-section">
+          <div class="section-title">설정</div>
+          <div class="settings-row">
+            <span class="settings-label">비활성화 대기 (초)</span>
+            <input type="number" class="settings-input" id="disableWait" value="3" min="1" max="10">
+          </div>
+          <div class="settings-row">
+            <span class="settings-label">재연결 대기 (초)</span>
+            <input type="number" class="settings-input" id="reconnectWait" value="8" min="3" max="30">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="changeIPBtn" onclick="changeIP()">
+          🔄 IP 변경하기
+        </button>
+        <button class="btn btn-secondary" onclick="refreshStatus()">
+          🔍 상태 새로고침
+        </button>
+      </div>
+      <div class="right-panel">
+        <div class="log-section">
+          <div class="log-header">
+            <div class="log-title">실행 로그</div>
+            <button class="log-clear" onclick="clearLog()">지우기</button>
+          </div>
+          <div class="log-content" id="logContent">프로그램 시작됨...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { exec } = require('child_process');
+    const https = require('https');
+    const http = require('http');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+
+    // ★★★ 핵심 변경: 이름 대신 인덱스 사용 ★★★
+    let selectedIfIndex = null;
+    let selectedDescription = '';
+    let isChanging = false;
+
+    function log(message, type = 'info') {
+      const logContent = document.getElementById('logContent');
+      const time = new Date().toLocaleTimeString();
+      logContent.innerHTML += `<div class="${type}">[${time}] ${message}</div>`;
+      logContent.scrollTop = logContent.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('logContent').innerHTML = '';
+      log('로그 초기화됨', 'info');
+    }
+
+    async function checkIP() {
+      return new Promise((resolve) => {
+        https.get('https://api.ipify.org', (res) => {
+          let data = '';
+          res.on('data', (chunk) => data += chunk);
+          res.on('end', () => resolve(data.trim()));
+        }).on('error', () => {
+          http.get('http://ip-api.com/json/?fields=query', (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+              try { resolve(JSON.parse(data).query); }
+              catch { resolve('확인 불가'); }
+            });
+          }).on('error', () => resolve('확인 불가'));
+        });
+      });
+    }
+
+    // ifIndex 포함해서 가져오기
+    async function findTetheringInterfaces() {
+      try {
+        const { stdout } = await execAsync(
+          'powershell -Command "Get-NetAdapter | Select-Object InterfaceDescription, Status, ifIndex | ConvertTo-Json"',
+          { encoding: 'utf8', maxBuffer: 1024 * 1024 }
+        );
+        const adapters = JSON.parse(stdout);
+        const adapterList = Array.isArray(adapters) ? adapters : [adapters];
+        
+        const tetheringAdapters = adapterList.filter(a => 
+          a.InterfaceDescription && (
+            a.InterfaceDescription.toLowerCase().includes('samsung') ||
+            a.InterfaceDescription.toLowerCase().includes('remote ndis') ||
+            a.InterfaceDescription.toLowerCase().includes('android') ||
+            a.InterfaceDescription.toLowerCase().includes('rndis') ||
+            a.InterfaceDescription.toLowerCase().includes('apple') ||
+            a.InterfaceDescription.toLowerCase().includes('iphone')
+          )
+        );
+        return { all: adapterList, tethering: tetheringAdapters };
+      } catch (error) {
+        log(`인터페이스 검색 오류: ${error.message}`, 'error');
+        return { all: [], tethering: [] };
+      }
+    }
+
+    async function updateInterfaceList() {
+      const select = document.getElementById('interfaceSelect');
+      const { all, tethering } = await findTetheringInterfaces();
+      select.innerHTML = '<option value="">테더링 인터페이스 선택...</option>';
+
+      if (tethering.length > 0) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = '📱 테더링 (자동 감지)';
+        tethering.forEach(adapter => {
+          const option = document.createElement('option');
+          option.value = adapter.ifIndex;  // ★ 인덱스 저장
+          option.textContent = `[${adapter.ifIndex}] ${adapter.InterfaceDescription}`;
+          option.selected = true;
+          optgroup.appendChild(option);
+        });
+        select.appendChild(optgroup);
+        
+        selectedIfIndex = tethering[0].ifIndex;
+        selectedDescription = tethering[0].InterfaceDescription;
+        document.getElementById('interfaceName').textContent = `Index: ${selectedIfIndex}`;
+        log(`테더링 감지: ${selectedDescription} (Index: ${selectedIfIndex})`, 'success');
+      }
+
+      const others = all.filter(a => !tethering.find(t => t.ifIndex === a.ifIndex));
+      if (others.length > 0) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = '기타 네트워크';
+        others.forEach(adapter => {
+          const option = document.createElement('option');
+          option.value = adapter.ifIndex;
+          option.textContent = `[${adapter.ifIndex}] ${adapter.InterfaceDescription || '알 수 없음'}`;
+          optgroup.appendChild(option);
+        });
+        select.appendChild(optgroup);
+      }
+
+      select.onchange = (e) => {
+        selectedIfIndex = e.target.value ? parseInt(e.target.value) : null;
+        const opt = e.target.options[e.target.selectedIndex];
+        selectedDescription = opt.textContent;
+        document.getElementById('interfaceName').textContent = selectedIfIndex ? `Index: ${selectedIfIndex}` : '-';
+        log(`선택됨: ${selectedDescription}`, 'info');
+      };
+    }
+
+    async function refreshStatus() {
+      log('상태 확인 중...', 'info');
+      const ip = await checkIP();
+      document.getElementById('currentIP').textContent = ip;
+      
+      if (ip !== '확인 불가') {
+        document.getElementById('connectionStatus').textContent = '연결됨';
+        document.getElementById('connectionStatus').className = 'status-value connected';
+        log(`현재 IP: ${ip}`, 'success');
+      } else {
+        document.getElementById('connectionStatus').textContent = '연결 안됨';
+        document.getElementById('connectionStatus').className = 'status-value disconnected';
+        log('인터넷 연결 없음', 'error');
+      }
+      await updateInterfaceList();
+    }
+
+    // ★★★ IP 변경 - ifIndex 사용 (한글 문제 없음) ★★★
+    async function changeIP() {
+      if (isChanging) return;
+      if (!selectedIfIndex) {
+        log('인터페이스를 선택해주세요', 'warning');
+        return;
+      }
+
+      isChanging = true;
+      const btn = document.getElementById('changeIPBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>IP 변경 중...';
+
+      const disableWait = parseInt(document.getElementById('disableWait').value) * 1000;
+      const reconnectWait = parseInt(document.getElementById('reconnectWait').value) * 1000;
+
+      try {
+        const oldIP = await checkIP();
+        log(`현재 IP: ${oldIP}`, 'info');
+
+        // ★ ifIndex로 비활성화 (한글 이름 사용 안함)
+        log(`인터페이스 [${selectedIfIndex}] 비활성화 중...`, 'info');
+        await execAsync(
+          `powershell -Command "Get-NetAdapter -InterfaceIndex ${selectedIfIndex} | Disable-NetAdapter -Confirm:$false"`,
+          { encoding: 'utf8' }
+        );
+        log('비활성화 완료', 'success');
+
+        log(`${disableWait/1000}초 대기...`, 'info');
+        await new Promise(r => setTimeout(r, disableWait));
+
+        // ★ ifIndex로 활성화
+        log(`인터페이스 [${selectedIfIndex}] 활성화 중...`, 'info');
+        await execAsync(
+          `powershell -Command "Get-NetAdapter -InterfaceIndex ${selectedIfIndex} | Enable-NetAdapter -Confirm:$false"`,
+          { encoding: 'utf8' }
+        );
+        log('활성화 완료', 'success');
+
+        log(`재연결 대기 (${reconnectWait/1000}초)...`, 'info');
+        await new Promise(r => setTimeout(r, reconnectWait));
+
+        const newIP = await checkIP();
+        document.getElementById('currentIP').textContent = newIP;
+
+        if (oldIP !== newIP && newIP !== '확인 불가') {
+          log(`✅ IP 변경 성공!`, 'success');
+          log(`   ${oldIP} → ${newIP}`, 'success');
+        } else if (newIP === '확인 불가') {
+          log('⚠️ 연결 실패. 대기 시간을 늘려보세요.', 'warning');
+        } else {
+          log('⚠️ IP 동일. 다시 시도해보세요.', 'warning');
+        }
+      } catch (error) {
+        log(`❌ 오류: ${error.message}`, 'error');
+        if (error.stderr) log(`상세: ${error.stderr}`, 'error');
+      } finally {
+        isChanging = false;
+        btn.disabled = false;
+        btn.innerHTML = '🔄 IP 변경하기';
+      }
+    }
+
+    window.onload = () => {
+      log('프로그램 초기화...', 'info');
+      refreshStatus();
+    };
+  </script>
+</body>
+</html>

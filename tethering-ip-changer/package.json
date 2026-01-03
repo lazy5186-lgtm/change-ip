@@ -1,0 +1,97 @@
+{
+  "name": "tethering-ip-changer",
+  "version": "1.0.0",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "dist": "electron-builder --win --publish=never",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps",
+    "build-icon": "electron-icon-builder --input=./assets/icon.png --output=./assets --flatten",
+    "clean": "rimraf dist build node_modules/.cache"
+  },
+  "keywords": [
+    "electron",
+    "tethering",
+    "ip-changer"
+  ],
+  "author": {
+    "name": "Byungjoon Kwak"
+  },
+  "license": "MIT",
+  "description": "모바일 테더링을 통한 IP 변경 도구",
+  "devDependencies": {
+    "electron": "^37.2.3",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "electron-icon-builder": "^2.0.1",
+    "electron-log": "^5.1.7"
+  },
+  "build": {
+    "appId": "com.tethering.ipchanger",
+    "productName": "IP변경기",
+    "copyright": "© 2025 Byungjoon Kwak. All rights reserved.",
+    "asar": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "**/*",
+      "!**/*.ts",
+      "!**/*.map",
+      "!*.code-workspace",
+      "!LICENSE.md",
+      "!README.md",
+      "!package-lock.json",
+      "!.gitignore",
+      "!.vscode/",
+      "!dist/",
+      "!build/",
+      "!**/.DS_Store",
+      "!**/*.log"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "requireAdministrator",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "IP변경기"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
